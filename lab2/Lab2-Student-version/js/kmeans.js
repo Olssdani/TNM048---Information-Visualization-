@@ -14,6 +14,7 @@ function kmeans(data, k) {
     var oldqualitycheck = 0; 
     var qualitycheck = 0;
     var converge = false;
+    var counter =0;
 
     //Parse the data from strings to floats
     var new_array = parseData(data);
@@ -25,19 +26,20 @@ function kmeans(data, k) {
 
     //Task 4.2 - Assign each point to the closest mean.
     clusterIndexPerPoint = assignPointsToMeans(new_array, centroid);
+    
     //Master loop -- Loop until quality is good
-    var counter =0;
     var pQualitycheck = 0;
     do {
-
         //Task 4.3 - Compute mean of each cluster
         centroid = computeClusterMeans(new_array, clusterIndexPerPoint, k);
+        
         // assign each point to the closest mean.
         var clusterIndexPerPoint = assignPointsToMeans(new_array, centroid);
 
         //Task 4.4 - Do a quality check for current result
         var qualitycheck = qualityCheck(centroid,new_array,clusterIndexPerPoint);
         
+        //Check the difference between the previous quality and the new
         var diff = Math.abs(pQualitycheck-qualitycheck);
         //End the loop if diff is smaller than a threshold
         if(diff < 0.0000001 )
@@ -51,7 +53,6 @@ function kmeans(data, k) {
 
     }
     while (converge == false)
-    console.log(counter);
     //Return results 
     return {
         assignments: clusterIndexPerPoint
@@ -85,8 +86,8 @@ function parseData(data){
         {
             //Get and parse the data
             temp.push(parseFloat(point[Object.keys(point)[j]]));
-
         }
+        //Push the parsed data to the array
         array.push(temp);
     }
     return array;
@@ -105,9 +106,9 @@ function initCentroids(data, k){
     //Create k centroids
     for(var i =0; i<k; i++)
     {
+        //Random a value between 0 and data.length
         var randomValue = Math.random();
         var index = Math.floor(randomValue*data.length); 
-
         centroid.push(data[index]);
     }
     return centroid;
@@ -123,8 +124,10 @@ function initCentroids(data, k){
 */
 function assignPointsToMeans(points, means){
     var assignments = new Array(points.length).fill(0);
+    //Loop over number of ponts
     for(var i =0; i<points.length; i++)
     {
+        //Assign that point to the closest mean
     	assignments[i] = findClosestMeanIndex(points[i], means);
     }
     return assignments;
@@ -139,8 +142,10 @@ function assignPointsToMeans(points, means){
 */
 function findClosestMeanIndex(point, means){
     var distances = new Array(means.length).fill(0);
+    //Loop over the nr of means
     for(var i =0; i<means.length; i++)
     {
+        //Calculate the distance between point and all means
     	distances[i] = euclideanDistance(point,means[i]);
     }
     return findIndexOfMinimum(distances);
@@ -156,8 +161,15 @@ function euclideanDistance(point1, point2){
 
     if (point1.length != point2.length)
         throw ("point1 and point2 must be of same dimension");
-
-    var sum = Math.sqrt(Math.pow(point1[0]-point2[0],2)+Math.pow(point1[1]-point2[1],2)+Math.pow(point1[2]-point2[2],2));
+    // get the euclidean distance between two points
+    var temp =0;
+    //Loop over nr of dimesnion
+    for(var i = 0; i<point1.length; i++)
+    {
+        //Add the squared distance between point1 and point2 
+        temp += Math.pow(point1[i]-point2[i],2);
+    }
+    var sum = Math.sqrt(temp);
     return sum;
 
 };
@@ -171,11 +183,13 @@ function euclideanDistance(point1, point2){
 function findIndexOfMinimum(array){
     var index = 0;
     var min = 1000000;
-  	for(var i =0; i<array.length; i++)
+    //Loop over array size
+    for(var i =0; i<array.length; i++)
   	{
+        //Check i point is smaller than min
   		if(min > array[i])
   		{
-
+            //Update
   			min = array[i];
   			index = i;
   		}
@@ -233,19 +247,21 @@ function computeClusterMeans(points, assignments, k){
  */
 function qualityCheck(centroid, new_array, clusterIndexPerPoint){
     var qualitycheck = 0;
+    //Loop over nr of centroid
     for(var i =0; i<centroid.length ; i++)       
     {
         var quality =0;
-
+        //Loop over array length
         for(var j =0; j < clusterIndexPerPoint.length; j++)
         {
-
+            //If point belongs to that mean
             if(clusterIndexPerPoint[j] ==i)
             {
-                
+                //Add the squared distance between the points
                 quality +=Math.pow(euclideanDistance(new_array[j],centroid[i]),2);
             }
         }
+        //add to qualitycheck
         qualitycheck +=quality;
     } 
     return qualitycheck;
