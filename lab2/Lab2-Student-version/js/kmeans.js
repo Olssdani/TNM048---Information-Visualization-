@@ -17,7 +17,6 @@ function kmeans(data, k) {
 
     //Parse the data from strings to floats
     var new_array = parseData(data);
-    
     //Task 4.1 - Select random k centroids 
     var centroid = initCentroids(new_array,k);
 
@@ -28,25 +27,31 @@ function kmeans(data, k) {
     clusterIndexPerPoint = assignPointsToMeans(new_array, centroid);
     //Master loop -- Loop until quality is good
     var counter =0;
+    var pQualitycheck = 0;
     do {
+
         //Task 4.3 - Compute mean of each cluster
         centroid = computeClusterMeans(new_array, clusterIndexPerPoint, k);
         // assign each point to the closest mean.
         var clusterIndexPerPoint = assignPointsToMeans(new_array, centroid);
-        
+
         //Task 4.4 - Do a quality check for current result
-        //qualitycheck = qualityCheck(centroid,new_array,clusterIndexPerPoint);
+        var qualitycheck = qualityCheck(centroid,new_array,clusterIndexPerPoint);
         
-        console.log(centroid);
-        //End the loop if...
-        if(counter > 20)
+        var diff = Math.abs(pQualitycheck-qualitycheck);
+        //End the loop if diff is smaller than a threshold
+        if(diff < 0.0000001 )
         {
         	converge = true;
         }
-        counter++;
+        //Set Pqualitycheck to qualityCheck
+        pQualitycheck = qualitycheck;
+        //Increae counter 
+        counter ++;
 
     }
     while (converge == false)
+    console.log(counter);
     //Return results 
     return {
         assignments: clusterIndexPerPoint
@@ -69,16 +74,19 @@ function parseData(data){
     var NrOfAttributes =Object.keys(data[0]).length;
     //Get nr of objects
     var NrOfObjects =data.length;
-    var t = [parseFloat(data[0].A),parseFloat(data[0].B),parseFloat(data[0].C)];
-   	var array = [t];
-
-    for(var i=1; i<NrOfObjects; i++)
+   	var array = [];
+    for(var i=0; i<NrOfObjects; i++)
     {
+        //Get a point from data
         var point = data[i];
         var temp = [];
-        temp.push(parseFloat(point.A));
-        temp.push(parseFloat(point.B));
-        temp.push(parseFloat(point.C));
+        //Loop over nr of datatypes in object
+        for(var j =0; j<NrOfAttributes;j++)
+        {
+            //Get and parse the data
+            temp.push(parseFloat(point[Object.keys(point)[j]]));
+
+        }
         array.push(temp);
     }
     return array;
@@ -99,7 +107,7 @@ function initCentroids(data, k){
     {
         var randomValue = Math.random();
         var index = Math.floor(randomValue*data.length); 
-        //centroid[i] = data[index];
+
         centroid.push(data[index]);
     }
     return centroid;
@@ -211,7 +219,7 @@ function computeClusterMeans(points, assignments, k){
     	
      }
 
-     console.log(newMeans)
+
     return newMeans;
 };
 
@@ -224,7 +232,22 @@ function computeClusterMeans(points, assignments, k){
  * @param {*} clusterIndexPerPoint 
  */
 function qualityCheck(centroid, new_array, clusterIndexPerPoint){
+    var qualitycheck = 0;
+    for(var i =0; i<centroid.length ; i++)       
+    {
+        var quality =0;
 
+        for(var j =0; j < clusterIndexPerPoint.length; j++)
+        {
+
+            if(clusterIndexPerPoint[j] ==i)
+            {
+                
+                quality +=Math.pow(euclideanDistance(new_array[j],centroid[i]),2);
+            }
+        }
+        qualitycheck +=quality;
+    } 
     return qualitycheck;
 }
 
